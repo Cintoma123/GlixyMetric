@@ -34,3 +34,6 @@ plan/
 # Logs
 *.log
 npm-debug.log*
+
+# System folders
+Microsoft/
