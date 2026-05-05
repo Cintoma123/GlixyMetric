@@ -1,13 +1,29 @@
 {
   "name": "calistus-glixymetric",
   "displayName": "GlixyMetric",
-  "description": "A developer productivity extension that tracks coding activity ,time spent , and insights directly inside VS code .",
+  "description": "Automatic coding activity tracker for VS Code. Track daily time, sessions, commits, and productivity insights without manual logging.",
   "version": "0.0.1",
+  "publisher": "glixymetric",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/glixymetric"
+  },
+  "keywords": [
+    "productivity",
+    "time tracking",
+    "coding metrics",
+    "git tracking",
+    "dashboard",
+    "stats",
+    "performance"
+  ],
   "engines": {
     "vscode": "^1.103.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Debuggers"
   ],
   "activationEvents": [
     "onStartupFinished",

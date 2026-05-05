@@ -1,71 +1,156 @@
-# calistus-glixymetric README
+# GlixyMetric
 
-This is the README for your extension "calistus-glixymetric". After writing up a brief description, we recommend including the following sections.
+Automatic coding activity tracker for VS Code. Track your daily coding time, sessions, commits, and productivity metrics without manual time logging.
+
+## Overview
+
+GlixyMetric is a lightweight developer productivity extension that runs silently in the background, monitoring your coding activity in real-time. It tracks continuous coding sessions, accumulates daily time metrics, monitors git commits, and provides visual insights through an interactive dashboard—all stored locally with zero external connections.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- **Automatic Session Tracking**: Monitors continuous coding sessions with intelligent 5-minute idle detection
+- **Daily Time Metrics**: Accumulates total coding time per day with automatic midnight reset
+- **Git Integration**: Automatically captures commits from your workspace
+- **Daily Goals**: Set and track daily targets for coding hours and commits
+- **Break Reminders**: Notifies when you've coded continuously for 90+ minutes
+- **Real-time Dashboard**: Interactive React-based interface showing stats, charts, sessions, and goals
+- **Status Bar Widget**: Always-visible quick stats with live updates
+- **Multi-Project Support**: Tracks activity across multiple workspace folders
+- **Pause/Resume**: Temporarily pause tracking without losing session data
+- **Privacy-First**: All data stored locally, no external services
 
-For example if there is an image subfolder under your extension project workspace:
+## Installation
 
-\!\[feature X\]\(images/feature-x.png\)
+1. Install from the VS Code Extension Marketplace by searching for "GlixyMetric"
+2. Or download the .vsix file and install manually via `Extensions: Install from VSIX`
+3. Reload VS Code after installation
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## Quick Start
 
-## Requirements
+1. Open the GlixyMetric dashboard by clicking the sidebar icon or running the "GlixyMetric: Open Dashboard" command
+2. Set your daily goals using "GlixyMetric: Set Daily Goals" command
+3. Start coding. GlixyMetric automatically begins tracking your activity
+4. View real-time stats in the status bar or open the full dashboard anytime
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## How Tracking Works
 
-## Extension Settings
+GlixyMetric monitors three core VS Code events to detect coding activity:
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+- File edits (when you change text)
+- File switches (when you open or focus a different file)
+- File saves (when you save changes)
 
-For example:
+When these events occur, a session begins. Sessions automatically close when:
+- You've been idle in the editor for more than 5 minutes
+- You switch to a different workspace folder
 
-This extension contributes the following settings:
+Daily time is tracked separately and continuously, resetting at midnight. Git commits are captured automatically once per minute if new commits exist since midnight.
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+## Status Bar
 
-## Known Issues
+The status bar displays four key pieces of information (right side):
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+- **Clock icon + time**: Duration of your current active session
+- **Flame icon + number**: Total commits made today
+- **Goal emoji**: Status indicator (green = on track, yellow = nearly there, red = behind)
+
+Click the status bar to open the full dashboard.
+
+## Commands
+
+Run any command with Ctrl+Shift+P (Windows/Linux) or Cmd+Shift+P (macOS):
+
+| Command | Function |
+|---------|----------|
+| GlixyMetric: Open Dashboard | Open the main dashboard in a panel |
+| GlixyMetric: Open Dashboard Sidebar | Open dashboard in the Activity Bar sidebar |
+| GlixyMetric: View Today Stats | Quick notification with today's stats |
+| GlixyMetric: Set Daily Goals | Configure daily hour and commit targets |
+| GlixyMetric: Clear Daily Goals | Reset goals for today |
+| GlixyMetric: Pause/Resume Tracking | Temporarily pause tracking on/off |
+
+## Dashboard Components
+
+The dashboard displays four main sections:
+
+**Today Stats**: Key metrics grid showing:
+- Coding Time: Time spent with active editor focus
+- Daily Total: Cumulative time tracked today
+- Commits: Git commits authored today
+- Current Session: Duration of ongoing session
+
+**Sessions**: Chronological list of today's coding sessions with:
+- Session duration
+- Project path
+- Start and end times
+- Pause status
+
+**Goals**: Progress toward daily targets with:
+- Hours target and current progress
+- Commits target and current progress
+- Status indicators showing if you're on track
+
+**Charts**: Visual data breakdown including:
+- Language distribution (pie chart)
+- Session duration patterns (bar chart)
+- Time allocation per project
+
+## Extension Behavior
+
+**On Startup**:
+GlixyMetric activates automatically when VS Code starts (no configuration needed). The first time you use it, a welcome notification guides you to open the dashboard.
+
+**Tracking Behavior**:
+- Sessions start with the first code change, file switch, or save event
+- Sessions persist while you actively code
+- Idle threshold is 5 minutes of inactivity
+- Daily timer never pauses and resets at midnight UTC
+- Break reminders trigger after 90 continuous minutes of coding
+
+**Data Persistence**:
+All data persists across VS Code restarts and sessions. Data is stored in a local SQLite database in your workspace storage directory.
+
+## Privacy
+
+GlixyMetric stores all data locally on your machine. No information is transmitted to external services. No analytics, no tracking, no cloud storage. Your data remains entirely under your control.
+
+Database location: `~/.config/Code/User/workspaceStorage/[workspace-id]/calistus-glixymetric.db`
+
+## Known Limitations
+
+- Idle detection only works when VS Code is the active window (minimization may pause tracking)
+- Git integration requires git to be in your system PATH
+- Git commits are scanned once per minute for performance
+- Multi-folder workspaces track each folder separately
+
+## Troubleshooting
+
+**Dashboard not updating**:
+- Try reloading the dashboard panel
+- Close and reopen VS Code
+
+**Commits not showing**:
+- Ensure git is installed and accessible in your PATH
+- Verify the git repository is properly initialized in your workspace
+
+**Tracking paused unexpectedly**:
+- Check if you've used "Pause/Resume Tracking" command
+- Sessions auto-close after 5 minutes of inactivity
+
+## Roadmap
+
+- Keyboard shortcuts for frequently-used commands
+- Export daily reports as PDF or CSV
+- Weekly and monthly analytics views
+- Customizable idle timeout and break reminder thresholds
+- Dark mode for dashboard
+- Time distribution by language and file type
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.0.1
+Initial release with core features: session tracking, daily metrics, git integration, goals, and interactive dashboard.
 
-### 1.0.0
+## Support
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+For issues, feature requests, or feedback, visit the project repository.
