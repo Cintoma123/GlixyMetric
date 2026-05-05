@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@types/vscode": "^1.116.0",
     "better-sqlite3": "^12.9.0"
   },
   "devDependencies": {

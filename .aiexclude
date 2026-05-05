@@ -1,0 +1,7 @@
+# Files and folders to exclude from AI context
+node_modules/
+dist/
+out/
+.vscode-test/
+*.vsix
+*.log

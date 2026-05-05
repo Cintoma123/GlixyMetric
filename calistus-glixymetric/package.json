@@ -10,14 +10,71 @@
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onView:glixymetric.dashboardView",
+    "onCommand:calistus-glixymetric.openDashboard",
+    "onCommand:calistus-glixymetric.openSidebar",
+    "onCommand:calistus-glixymetric.viewTodayStats",
+    "onCommand:calistus-glixymetric.setDailyGoals",
+    "onCommand:calistus-glixymetric.clearDailyGoals",
+    "onCommand:calistus-glixymetric.pauseTracking",
+    "onCommand:calistus-glixymetric.testTracking"
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "glixymetricDashboard",
+          "title": "GlixyMetric",
+          "icon": "media/glixymetric-activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "glixymetricDashboard": [
+        {
+          "type": "webview",
+          "id": "glixymetric.dashboardView",
+          "name": "Dashboard",
+          "visibility": "visible"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "calistus-glixymetric.testTracking",
         "title": "GlixyMetric: Test Tracking"
+      },
+      {
+        "command": "calistus-glixymetric.viewTodayStats",
+        "title": "GlixyMetric: View Today Stats",
+        "description": "Show your coding stats for today"
+      },
+      {
+        "command": "calistus-glixymetric.openDashboard",
+        "title": "GlixyMetric: Open Dashboard",
+        "description": "Open the GlixyMetric dashboard panel"
+      },
+      {
+        "command": "calistus-glixymetric.openSidebar",
+        "title": "GlixyMetric: Open Dashboard Sidebar",
+        "description": "Open the optional GlixyMetric dashboard sidebar"
+      },
+      {
+        "command": "calistus-glixymetric.setDailyGoals",
+        "title": "GlixyMetric: Set Daily Goals",
+        "description": "Set daily coding hours and commits targets"
+      },
+      {
+        "command": "calistus-glixymetric.pauseTracking",
+        "title": "GlixyMetric: Pause/Resume Tracking",
+        "description": "Pause or resume activity tracking"
+      },
+      {
+        "command": "calistus-glixymetric.clearDailyGoals",
+        "title": "GlixyMetric: Clear Daily Goals",
+        "description": "Clear your daily goals for today"
       }
     ]
   },
@@ -36,23 +93,26 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.103.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "typescript-eslint": "^8.56.1",
-    "eslint": "^9.39.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/sql.js": "^1.4.4",
+    "@types/vscode": "^1.116.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
     "esbuild": "^0.27.3",
+    "eslint": "^9.39.3",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.9.3",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
+    "typescript-eslint": "^8.56.1"
   },
   "dependencies": {
-    "better-sqlite3": "^8.5.0",
+    "axios": "^1.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1",
     "recharts": "^2.8.0",
-    "axios": "^1.6.0"
+    "sql.js": "^1.8.0"
   }
 }

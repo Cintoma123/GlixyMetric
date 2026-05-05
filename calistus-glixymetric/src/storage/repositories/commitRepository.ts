@@ -72,8 +72,10 @@ export function getCommitByHash(hash: string): Commit | null {
  */
 export function getCommitsToday(): Commit[] {
   const db = getDatabase();
-  const today = Math.floor(Date.now() / 1000);
-  const startOfDay = today - (today % 86400);
+  const now = Math.floor(Date.now() / 1000);
+  // Calculate midnight in LOCAL timezone (to match git log --since=midnight)
+  const timezoneOffset = new Date().getTimezoneOffset() * 60; // Convert minutes to seconds
+  const startOfDay = now - ((now + timezoneOffset) % 86400);
   
   const stmt = db.prepare(`
     SELECT id, hash, message, timestamp, repo_path
@@ -91,8 +93,10 @@ export function getCommitsToday(): Commit[] {
  */
 export function getCommitCountToday(): number {
   const db = getDatabase();
-  const today = Math.floor(Date.now() / 1000);
-  const startOfDay = today - (today % 86400);
+  const now = Math.floor(Date.now() / 1000);
+  // Calculate midnight in LOCAL timezone (to match git log --since=midnight)
+  const timezoneOffset = new Date().getTimezoneOffset() * 60; // Convert minutes to seconds
+  const startOfDay = now - ((now + timezoneOffset) % 86400);
   
   const stmt = db.prepare(`
     SELECT COUNT(*) as count
@@ -111,8 +115,10 @@ export function getCommitCountToday(): number {
  */
 export function getCommitsByRepoToday(repoPath: string): Commit[] {
   const db = getDatabase();
-  const today = Math.floor(Date.now() / 1000);
-  const startOfDay = today - (today % 86400);
+  const now = Math.floor(Date.now() / 1000);
+  // Calculate midnight in LOCAL timezone (to match git log --since=midnight)
+  const timezoneOffset = new Date().getTimezoneOffset() * 60; // Convert minutes to seconds
+  const startOfDay = now - ((now + timezoneOffset) % 86400);
   
   const stmt = db.prepare(`
     SELECT id, hash, message, timestamp, repo_path
@@ -131,8 +137,10 @@ export function getCommitsByRepoToday(repoPath: string): Commit[] {
  */
 export function getCommitCountByRepoToday(repoPath: string): number {
   const db = getDatabase();
-  const today = Math.floor(Date.now() / 1000);
-  const startOfDay = today - (today % 86400);
+  const now = Math.floor(Date.now() / 1000);
+  // Calculate midnight in LOCAL timezone (to match git log --since=midnight)
+  const timezoneOffset = new Date().getTimezoneOffset() * 60; // Convert minutes to seconds
+  const startOfDay = now - ((now + timezoneOffset) % 86400);
   
   const stmt = db.prepare(`
     SELECT COUNT(*) as count

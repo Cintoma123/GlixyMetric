@@ -96,7 +96,9 @@ export function getEventsToday(): Event[] {
   try {
     const db = getDatabase();
     const now = Math.floor(Date.now() / 1000); // Current timestamp
-    const startOfDay = now - ((now % 86400) + new Date().getTimezoneOffset() * 60);
+    // Calculate midnight in LOCAL timezone
+    const timezoneOffset = new Date().getTimezoneOffset() * 60; // Convert minutes to seconds
+    const startOfDay = now - ((now + timezoneOffset) % 86400); // Midnight in LOCAL timezone
 
     const stmt = db.prepare(`
       SELECT id, type, timestamp, file, language
@@ -129,7 +131,9 @@ export function getEventsByLanguageToday(language: string): Event[] {
   try {
     const db = getDatabase();
     const now = Math.floor(Date.now() / 1000);
-    const startOfDay = now - ((now % 86400) + new Date().getTimezoneOffset() * 60);
+    // Calculate midnight in LOCAL timezone
+    const timezoneOffset = new Date().getTimezoneOffset() * 60; // Convert minutes to seconds
+    const startOfDay = now - ((now + timezoneOffset) % 86400); // Midnight in LOCAL timezone
 
     const stmt = db.prepare(`
       SELECT id, type, timestamp, file, language
@@ -160,7 +164,9 @@ export function getEventsByFileToday(filePath: string): Event[] {
   try {
     const db = getDatabase();
     const now = Math.floor(Date.now() / 1000);
-    const startOfDay = now - ((now % 86400) + new Date().getTimezoneOffset() * 60);
+    // Calculate midnight in LOCAL timezone
+    const timezoneOffset = new Date().getTimezoneOffset() * 60; // Convert minutes to seconds
+    const startOfDay = now - ((now + timezoneOffset) % 86400); // Midnight in LOCAL timezone
 
     const stmt = db.prepare(`
       SELECT id, type, timestamp, file, language

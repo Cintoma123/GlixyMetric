@@ -1,15 +1,25 @@
-import Database from 'better-sqlite3';
+import initSqlJs from 'sql.js';
 import * as path from 'path';
 import * as fs from 'fs';
 
-let db: Database.Database | null = null;
+interface Database {
+  run: (sql: string, ...params: any[]) => any;
+  exec: (sql: string) => void;
+  prepare: (sql: string) => any;
+  close: () => void;
+}
+
+let db: Database | null = null;
+let sqlJs: any = null;
+let dbPath: string = '';
+let sqliteDb: any = null;
 
 /**
  * Initialize SQLite database with schema
  * @param storagePath - Path to store the database file
- * @returns Database instance
+ * @returns Database instance reference
  */
-export function initializeDatabase(storagePath: string): Database.Database {
+export async function initializeDatabase(storagePath: string): Promise<Database> {
   if (db) {
     return db;
   }
@@ -19,16 +29,98 @@ export function initializeDatabase(storagePath: string): Database.Database {
     fs.mkdirSync(storagePath, { recursive: true });
   }
 
-  const dbPath = path.join(storagePath, 'glixymetric.db');
-  db = new Database(dbPath);
+  dbPath = path.join(storagePath, 'glixymetric.db');
+  
+  // Initialize sql.js and tell it exactly where the WASM binary lives.
+  const wasmPath = path.join(__dirname, 'sql-wasm.wasm');
+  sqlJs = await initSqlJs({
+    locateFile: () => wasmPath
+  });
+  
+  // Load or create database
+  let fileBuffer: Buffer | undefined;
+  if (fs.existsSync(dbPath)) {
+    fileBuffer = fs.readFileSync(dbPath);
+  }
+  
+  const SQL = new sqlJs.Database(fileBuffer);
+  sqliteDb = SQL;
 
-  // Enable foreign keys
-  db.pragma('journal_mode = WAL');
-  db.pragma('foreign_keys = ON');
+  // Create wrapper with persistence
+  db = {
+    run: (sql: string, ...params: any[]) => {
+      SQL.run(sql, params);
+      saveDatabase();
+      return { changes: SQL.getRowsModified() };
+    },
+    exec: (sql: string) => {
+      SQL.exec(sql);
+      saveDatabase();
+    },
+    prepare: (sql: string) => {
+      const stmt = SQL.prepare(sql);
+      const stmtWrapper = {
+        run: function(...params: any[]) {
+          stmt.bind(params);
+          stmt.step();
+          const lastId = SQL.exec("SELECT last_insert_rowid() as id")[0]?.values[0]?.[0] || 0;
+          stmt.free();
+          saveDatabase();
+          return { lastInsertRowid: lastId, changes: SQL.getRowsModified() };
+        },
+        get: function(...params: any[]) {
+          stmt.bind(params);
+          if (stmt.step()) {
+            const row = stmt.getAsObject();
+            stmt.free();
+            return row;
+          }
+          stmt.free();
+          return undefined;
+        },
+        all: function(...params: any[]) {
+          stmt.bind(params);
+          const result = [];
+          while (stmt.step()) {
+            result.push(stmt.getAsObject());
+          }
+          stmt.free();
+          return result;
+        },
+        bind: (...params: any[]) => { stmt.bind(params); return stmtWrapper; },
+        step: () => stmt.step(),
+        getAsObject: () => stmt.getAsObject(),
+        free: () => stmt.free(),
+      };
+      return stmtWrapper;
+    },
+    close: () => {
+      if (SQL) {
+        saveDatabaseSync();
+        SQL.close();
+        db = null;
+      }
+    }
+  };
 
   createSchema();
 
   return db;
+}
+
+function saveDatabase(): void {
+  if (sqliteDb && dbPath) {
+    try {
+      const data = sqliteDb.export();
+      fs.writeFileSync(dbPath, Buffer.from(data));
+    } catch (err) {
+      console.error('Failed to save database:', err);
+    }
+  }
+}
+
+function saveDatabaseSync(): void {
+  saveDatabase();
 }
 
 /**
@@ -60,9 +152,24 @@ function createSchema(): void {
       duration INTEGER,
       project_path TEXT NOT NULL,
       language TEXT,
+      paused_seconds INTEGER NOT NULL DEFAULT 0,
+      pause_started_at INTEGER,
       created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
     );
   `);
+
+  // Lightweight migration for older DBs that may not have pause columns.
+  // SQLite doesn't support `ADD COLUMN IF NOT EXISTS`, so we attempt and ignore failures.
+  try {
+    db.exec(`ALTER TABLE sessions ADD COLUMN paused_seconds INTEGER NOT NULL DEFAULT 0;`);
+  } catch {
+    // Column likely already exists
+  }
+  try {
+    db.exec(`ALTER TABLE sessions ADD COLUMN pause_started_at INTEGER;`);
+  } catch {
+    // Column likely already exists
+  }
 
   // Commits Table - Git activity tracking
   db.exec(`
@@ -94,6 +201,16 @@ function createSchema(): void {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       timestamp INTEGER NOT NULL,
       duration INTEGER,
+      created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+    );
+  `);
+
+  // Daily Totals Table - Total coding time per day (NEVER pauses, resets at midnight)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS daily_totals (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL UNIQUE,
+      total_seconds INTEGER NOT NULL DEFAULT 0,
       created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
     );
   `);
@@ -140,12 +257,17 @@ function createIndexes(): void {
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_breaks_timestamp ON breaks(timestamp);
   `);
+
+  // Daily Totals indexes
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_daily_totals_date ON daily_totals(date);
+  `);
 }
 
 /**
  * Get database instance
  */
-export function getDatabase(): Database.Database {
+export function getDatabase(): Database {
   if (!db) {
     throw new Error('Database not initialized. Call initializeDatabase first.');
   }
@@ -159,6 +281,7 @@ export function closeDatabase(): void {
   if (db) {
     db.close();
     db = null;
+    sqliteDb = null;
   }
 }
 
